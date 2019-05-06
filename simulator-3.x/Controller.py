@@ -42,16 +42,16 @@ class Controller:
                 print('Received an A')
                 if self._Controller__effectors['pumpA'].isOn():
                     self._Controller__effectors['pumpA'].switchOff()
-                    self._Controller__effectors['lcd'].pushString('\x0cPump A turned off!')
+                    self._Controller__effectors['lcd'].pushString('\fPump A turned off!')
                 else:
                     self._Controller__effectors['pumpA'].switchOn()
-                    self._Controller__effectors['lcd'].pushString('\x0cPump A turned on!')
+                    self._Controller__effectors['lcd'].pushString('\fPump A turned on!')
         if keypressed == 'B':
             print('Received an B')
             if self._Controller__effectors['pumpB'].isOn():
                 self._Controller__effectors['pumpB'].switchOff()
-                self._Controller__effectors['lcd'].pushString('\nPump B turned off!')
+                self._Controller__effectors['lcd'].pushString('\fPump B turned off!')
             else:
                 self._Controller__effectors['pumpB'].switchOn()
-                self._Controller__effectors['lcd'].pushString('\nPump B turned on!')
+                self._Controller__effectors['lcd'].pushString('\fPump B turned on!')
 # okay decompiling Controller.pyc
