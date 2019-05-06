@@ -1,0 +1,5 @@
+{
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/simulator-3.x"
+    ],
+}
