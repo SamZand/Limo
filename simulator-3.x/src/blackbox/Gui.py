@@ -22,8 +22,8 @@ class GUI:
         self._GUI__run = False
         pygame.init()
         pygame.font.init()
-        self._GUI__font = pygame.font.Font('font/OpenSans-Regular.ttf', 12)
-        self._GUI__monospace = pygame.font.Font('font/LEDCalculator.ttf', 12)
+        self._GUI__font = pygame.font.Font('blackbox/font/OpenSans-Regular.ttf', 12)
+        self._GUI__monospace = pygame.font.Font('blackbox/font/LEDCalculator.ttf', 12)
         self._GUI__screen = pygame.display.set_mode(screensize)
         pygame.display.set_caption('Liquid Mixer Simulator GUI')
         pygame.mouse.set_visible(True)
@@ -248,7 +248,7 @@ class Icon:
         self._x = int(x)
         self._y = int(y)
         self._screen = screen
-        self._font = pygame.font.Font('font/OpenSans-Regular.ttf', 12)
+        self._font = pygame.font.Font('blackbox/font/OpenSans-Regular.ttf', 12)
 
     def draw(self) -> None:
         text = self._font.render('?', False, BLACK)
