@@ -49,6 +49,5 @@ if __name__ == "__main__":
     # Override the update function with our logic
     simulator._Simulator__controller.update = types.MethodType(new_update, simulator._Simulator__controller)
 
-
     # Start simulation
     simulator.run()
