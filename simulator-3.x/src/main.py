@@ -1,52 +1,43 @@
+from states.states import StateMachine
+
+
+class LemonatorInterface:
+    def __init__(self, effectors, sensors):
+        self.lcd = effectors['lcd']
+        self.keypad = sensors['keypad']
+
+        self.distance = sensors['level']
+        self.colour = sensors['colour']
+        self.temperature = sensors['temp']
+        self.presence = sensors['presence']
+
+        self.heater = effectors['heater']
+        self.syrup_pump = effectors['pumpB']
+        self.syrup_valve = effectors['valveB']
+        self.water_pump = effectors['pumpA']
+        self.water_valve = effectors['valveA']
+        self.led_green = effectors['greenM']
+        self.led_yellow = effectors['yellowM']
+
+        # TODO: Define
+        self.syrup = None
+        self.water = None
+
+
 def new_update(self) -> None:
     # TODO: Replace with interface
     effectors = self._Controller__effectors
     sensors = self._Controller__sensors
 
-    # No cup, disable everything
-    if not sensors['presence'].readValue():
-        effectors['greenM'].switchOff()
-        if effectors['heater'].isOn() or effectors['pumpA'].isOn() or effectors['pumpB'].isOn():
-            print('No cup placed; stopping all')
-        effectors['heater'].switchOff()
-        effectors['yellowM'].switchOff()
-        effectors['pumpA'].switchOff()
-        effectors['redA'].switchOff()
-        effectors['valveA'].switchOn()
-        effectors['greenA'].switchOn()
-        effectors['redB'].switchOff()
-        effectors['pumpB'].switchOff()
-        effectors['valveB'].switchOn()
-        effectors['greenB'].switchOn()
+    if not hasattr(self, "interface"):
+        self.interface = LemonatorInterface(effectors, sensors)
+        return
+    if not hasattr(self, "stm"):
+        self.stm = StateMachine(self.interface)
         return
 
+    self.stm.update()
 
-    keypressed = sensors['keypad'].pop()
-    # TODO: HUIB? if keypressed werkt toch ook?
-    if not keypressed == '\x00':
-        print('Keypress detected!')
-
-        if keypressed == 'A':
-            print('Received an A')
-            if effectors['pumpA'].isOn():
-                effectors['pumpA'].switchOff()
-                effectors['lcd'].pushString('\fPump A turned off!')
-            else:
-                effectors['pumpA'].switchOn()
-                effectors['lcd'].pushString('\fPump A turned on!')
-
-            effectors['greenA'].switchOn()
-        if keypressed == 'B':
-            print('Received an B')
-            if effectors['pumpB'].isOn():
-                effectors['pumpB'].switchOff()
-                effectors['lcd'].pushString('\fPump B turned off!')
-            else:
-                effectors['pumpB'].switchOn()
-                effectors['lcd'].pushString('\fPump B turned on!')
-
-    self.test = 10
-    print("Het", self.test)
 
 if __name__ == "__main__":
     """Only perform actions when invoked directly!"""
