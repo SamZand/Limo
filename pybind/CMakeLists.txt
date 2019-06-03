@@ -26,8 +26,7 @@ set(cxxflags ${CMAKE_CXX_FLAGS}
 
     # -Weffc++
     # Note that pybind11 is not writting using effc++
-
-    -D_hypot=hypot
+    
     -pthread
     -m64
     -DMS_WIN64
