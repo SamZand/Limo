@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(lemonator)
 
 set(cxxflags ${CMAKE_CXX_FLAGS}
-    -std=gnu++17
+    -std=c++17
     # Note that gnu++11 instead of c++11 is used. This is required
     # because pybind11 expects a strdup function to be defined in the std.
 
@@ -26,7 +26,7 @@ set(cxxflags ${CMAKE_CXX_FLAGS}
 
     # -Weffc++
     # Note that pybind11 is not writting using effc++
-    
+
     -pthread
     -m64
     -DMS_WIN64
