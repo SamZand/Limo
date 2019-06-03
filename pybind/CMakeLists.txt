@@ -33,6 +33,8 @@ set(cxxflags ${CMAKE_CXX_FLAGS}
     -D_hypot=hypot
 )
 
+add_definitions(-DVERSION_INFO="0.0.1")
+
 string(REGEX REPLACE ";" " " cxxflags "${cxxflags}")
 set(CMAKE_CXX_FLAGS ${cxxflags})
 

@@ -11,7 +11,7 @@ PYBIND11_MODULE(lemonator, m) {
         Pybind11 example plugin
         -----------------------
 
-        .. currentmodule:: cmake_example
+        .. currentmodule:: lemonator
 
         .. autosummary::
            :toctree: _generate
