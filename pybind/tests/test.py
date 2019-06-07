@@ -1,4 +1,5 @@
 # pylint: disable=import-error
+# pep8: disable=E223
 import lemonator
 
 def test_version():
