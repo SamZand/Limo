@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(lemonator)
 
+set(sources
+    src/main.cpp
+    src/statemachine.cpp
+)
+
 set(cxxflags ${CMAKE_CXX_FLAGS}
     -std=c++17
-    # Note that gnu++11 instead of c++11 is used. This is required
-    # because pybind11 expects a strdup function to be defined in the std.
-
     -Wall
     -Wextra
     # -pedantic-errors
@@ -33,19 +35,28 @@ set(cxxflags ${CMAKE_CXX_FLAGS}
     -D_hypot=hypot
 )
 
-add_definitions(-DVERSION_INFO="0.0.1")
-
 string(REGEX REPLACE ";" " " cxxflags "${cxxflags}")
 set(CMAKE_CXX_FLAGS ${cxxflags})
 
-set(PYBIND11_LTO_CXX_FLAGS "")
-set(PYTHON_MODULE_EXTENSION ".pyd")
-
 include_directories(include/)
 
+# Pybind .pyd module
+set(PYBIND11_LTO_CXX_FLAGS "")
+set(PYTHON_MODULE_EXTENSION ".pyd")
+add_compile_definitions(VERSION_INFO="0.0.2")
 add_subdirectory(lib/pybind11/)
-pybind11_add_module(${PROJECT_NAME} MODULE src/main.cpp)
+pybind11_add_module(${PROJECT_NAME} MODULE ${sources})
 
-set(sources
-    src/main.cpp
-)
+# hwlib
+add_compile_definitions(HWLIB_TARGET_pyd)
+add_subdirectory(lib/hwlib)
+link_libraries(hwlib)
+
+# RS232 library
+add_library(rs232 STATIC lib/RS-232/rs232.c)
+include_directories(lib/RS-232)
+link_libraries(rs232)
+
+# Compile C++ executable
+add_executable(cpp-only ${sources})
+target_compile_definitions(cpp-only PUBLIC PYBIND_DISABLED)

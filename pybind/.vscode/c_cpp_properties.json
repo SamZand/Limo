@@ -4,7 +4,15 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceRoot}/include",
-                "${workspaceRoot}/lib/pybind11/include"
+                "${workspaceRoot}/lib/pybind11/include",
+                "${workspaceRoot}/lib/hwlib/library",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/cppwinrt/",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/shared/",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/ucrt/",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/um/",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/winrt/",
+                "C:/Users/Julian/AppData/Local/Programs/Python/Python37/include/",
+                "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.15.26726/include"
             ],
             "defines": [
                 "_DEBUG",
@@ -13,13 +21,17 @@
             "intelliSenseMode": "gcc-x64",
             "browse": {
                 "path": [
-                    "${workspaceRoot}"
+                    "${workspaceRoot}",
+                    "${workspaceRoot}/include",
+                    "${workspaceRoot}/lib/pybind11/include",
+                    "${workspaceRoot}/lib/hwlib/library"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
             },
             "cStandard": "c11",
-            "cppStandard": "c++17"
+            "cppStandard": "c++17",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
     "version": 4
