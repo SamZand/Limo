@@ -1,9 +1,14 @@
-from states.utills import Enum
+import unittest
+if __name__ == "__main__":
+    from utills import Enum
+else:
+    from states.utills import Enum
 
 
 class StateMachine:
     def __init__(self, interface):
-        self.STATES = Enum("on", "pressure_build", "pour", "cancel", "keep_warm")
+        self.STATES = Enum("on", "pressure_build",
+                           "pour", "cancel", "keep_warm")
         self.on_state = OnState(self, interface)
         self.pressure_build_state = PressureBuildState(self, interface)
         self.pour_state = PourState(self, interface)
@@ -91,7 +96,6 @@ class OnState(State):
             self.interface.lcd.pushString('\fReady')
             keypressed = self.interface.keypad.pop()
             if keypressed:
-                print(keypressed)
                 # Oke button pressed, go to next state
                 if keypressed == 'A':
                     self.stm.switch_state(self.stm.STATES.PRESSURE_BUILD)
@@ -148,7 +152,6 @@ class PourState(State):
             # TODO: SETTINGS
             self.interface.water_pump.switchOn()
             self.interface.syrup_pump.switchOn()
-            print(self.interface.distance.readValue())
 
     def reset(self):
         super().reset()
@@ -202,3 +205,97 @@ class KeepWarmState(State):
 
     def reset(self):
         super().reset()
+
+
+if __name__ == "__main__":
+    class MockLemonatorInterface:
+        def __init__(self, effectors, sensors):
+            self.lcd = effectors['lcd']
+            self.keypad = sensors['keypad']
+
+            self.distance = sensors['level']
+            self.colour = sensors['colour']
+            self.temperature = sensors['temp']
+            self.presence = sensors['presence']
+
+            self.heater = effectors['heater']
+            self.syrup_pump = effectors['pumpB']
+            self.syrup_valve = effectors['valveB']
+            self.water_pump = effectors['pumpA']
+            self.water_valve = effectors['valveA']
+            self.led_green = effectors['greenM']
+            self.led_yellow = effectors['yellowM']
+
+            # TODO: Define
+            self.syrup = None
+            self.water = None
+
+    class MockEffector:
+        def __init__(self):
+            self.isOn = False
+
+        def switchOff(self):
+            self.isOn = False
+
+        def switchOn(self):
+            self.isOn = True
+
+    class MockSensors:
+        def __init__(self):
+            self.mockReadValue = None
+
+        def readValue(self):
+            return self.mockReadValue
+
+    class MockLcd:
+        def __init__(self):
+            self.mockLcd = ()
+
+        def pushString(self, MockLcd):
+            self.MockLcd = MockLcd
+
+    class MockKey:
+        def __init__(self):
+            self.mockKeypad = []
+
+        def pop(self):
+            if len(self.mockKeypad) == 0:
+                return None
+            return self.mockKeypad.pop()
+
+    class TestUnitClass(unittest.TestCase):
+
+        def setUp(self):
+
+            self.effectors = {'heater': MockEffector(),
+                              'pumpB': MockEffector(),
+                              'valveB': MockEffector(),
+                              'pumpA': MockEffector(),
+                              'valveA': MockEffector(),
+                              'greenM': MockEffector(),
+                              'yellowM': MockEffector(),
+                              'lcd': MockLcd()}
+
+            self.sensors = {'level': MockSensors(),
+                            'colour': MockSensors(),
+                            'temp': MockSensors(),
+                            'presence': MockSensors(),
+                            'keypad': MockKey()
+                            }
+
+            self.mockInterface = MockLemonatorInterface(
+                self.effectors, self.sensors)
+            self.stateMachine = StateMachine(self.mockInterface)
+
+        def test_onState_isStart(self):
+            # start state == OnState
+            self.assertIsInstance(self.stateMachine.state, OnState)
+
+        def test_onState_pressedA(self):
+            # On state transition to Pressure State after keypress: A
+            self.mockInterface.keypad.mockKeypad.append('A')
+            self.mockInterface.presence.mockReadValue = True
+            self.stateMachine.update()
+            self.assertIsInstance(self.stateMachine.state, PressureBuildState)
+
+unittest.main()

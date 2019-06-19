@@ -25,7 +25,6 @@ class LemonatorInterface:
 
 
 def new_update(self) -> None:
-    # TODO: Replace with interface
     effectors = self._Controller__effectors
     sensors = self._Controller__sensors
 
@@ -47,7 +46,8 @@ if __name__ == "__main__":
     simulator = Simulator(True)  # use Simulator(False) to disable the GUI
 
     # Override the update function with our logic
-    simulator._Simulator__controller.update = types.MethodType(new_update, simulator._Simulator__controller)
+    simulator._Simulator__controller.update = types.MethodType(
+        new_update, simulator._Simulator__controller)
 
     # Start simulation
     simulator.run()
