@@ -4,6 +4,8 @@ project(lemonator)
 set(sources
     src/main.cpp
     src/statemachine.cpp
+    lib/RS-232/rs232.c
+    lib/hwlib/library/hwlib.cpp
 )
 
 set(cxxflags ${CMAKE_CXX_FLAGS}
@@ -43,18 +45,20 @@ include_directories(include/)
 # Pybind .pyd module
 set(PYBIND11_LTO_CXX_FLAGS "")
 set(PYTHON_MODULE_EXTENSION ".pyd")
+set(PYBIND11_PYTHON_VERSION 3.7 CACHE STRING "")
 add_compile_definitions(VERSION_INFO="0.0.2")
 add_subdirectory(lib/pybind11/)
 pybind11_add_module(${PROJECT_NAME} MODULE ${sources})
 
 # hwlib
 add_compile_definitions(HWLIB_TARGET_pyd)
+include_directories(${INCLUDE_DIRECTORIES} lib/hwlib/library)
 add_subdirectory(lib/hwlib)
 link_libraries(hwlib)
 
 # RS232 library
 add_library(rs232 STATIC lib/RS-232/rs232.c)
-include_directories(lib/RS-232)
+include_directories(${INCLUDE_DIRECTORIES} lib/RS-232)
 link_libraries(rs232)
 
 # Compile C++ executable
