@@ -1,9 +1,19 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(lemonator)
 
+set(headers
+    include/ds1820.hpp
+    include/lemonator_interface.hpp
+    include/py-interface.hpp
+    include/sr04.hpp
+    include/statemachine.hpp
+    include/tcs3200.hpp
+)
+
 set(sources
     src/main.cpp
     src/statemachine.cpp
+    ${headers}
 )
 
 set(cxxflags ${CMAKE_CXX_FLAGS}
@@ -42,6 +52,7 @@ include_directories(include/)
 
 # hwlib
 include_directories(${INCLUDE_DIRECTORIES} lib/hwlib/library)
+# source_group(Headers TREE lib/hwlib/library)
 add_subdirectory(lib/hwlib)
 target_compile_options(hwlib INTERFACE
     -Wno-type-limits
@@ -52,6 +63,7 @@ link_libraries(hwlib)
 # RS232 library
 add_library(rs232 STATIC lib/RS-232/rs232.c)
 include_directories(${INCLUDE_DIRECTORIES} lib/RS-232)
+# source_group(Headers TREE lib/RS-232)
 link_libraries(rs232) 
 
 # Pybind .pyd module
