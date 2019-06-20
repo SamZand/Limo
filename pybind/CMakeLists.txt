@@ -43,6 +43,9 @@ include_directories(include/)
 # hwlib
 include_directories(${INCLUDE_DIRECTORIES} lib/hwlib/library)
 add_subdirectory(lib/hwlib)
+target_compile_options(hwlib INTERFACE
+    -Wno-type-limits
+)
 target_compile_definitions(hwlib INTERFACE HWLIB_TARGET_pyd)
 link_libraries(hwlib)
 
