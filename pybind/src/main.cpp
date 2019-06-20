@@ -20,4 +20,6 @@ int main() {
     auto distance = limo->distance.read_mm();
     std::cout << "Received distance: " << distance << std::endl;
 }
+#else
+#include "py-interface.hpp"
 #endif
