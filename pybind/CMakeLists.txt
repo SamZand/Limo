@@ -69,7 +69,7 @@ link_libraries(rs232)
 # Pybind .pyd module
 set(PYBIND11_LTO_CXX_FLAGS "")
 set(PYTHON_MODULE_EXTENSION ".pyd")
-set(PYBIND11_PYTHON_VERSION 3.7 CACHE STRING "")
+set(PYBIND11_PYTHON_VERSION 3.5 CACHE STRING "")
 add_compile_definitions(VERSION_INFO="0.0.2")
 add_subdirectory(lib/pybind11/)
 pybind11_add_module(${PROJECT_NAME} MODULE ${sources})
