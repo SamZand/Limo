@@ -17,6 +17,7 @@ class StateMachine:
 
         # Start at on_state
         self.state = self.on_state
+        self.switch_state(self.STATES.ON)
 
     def __switch_state(self, new_state):
         self.state.reset()
@@ -209,6 +210,7 @@ class KeepWarmState(State):
 
 if __name__ == "__main__":
     import time
+
     class MockLemonatorInterface:
         def __init__(self, effectors, sensors):
             self.lcd = effectors['lcd']
@@ -251,10 +253,10 @@ if __name__ == "__main__":
 
     class MockLcd:
         def __init__(self):
-            self.mockLcd = ()
+            self.mockLcdValue = ""
 
-        def pushString(self, MockLcd):
-            self.mockLcd = MockLcd
+        def pushString(self, mockLcdNewValue):
+            self.mockLcdValue = mockLcdNewValue
 
     class MockKey:
         def __init__(self):
@@ -286,14 +288,39 @@ if __name__ == "__main__":
                 'keypad': MockKey()
             }
 
-            self.mockInterface = MockLemonatorInterface(self.effectors, self.sensors)
+            self.mockInterface = MockLemonatorInterface(
+                self.effectors, self.sensors)
             self.stateMachine = StateMachine(self.mockInterface)
 
         def test_onState_isStart(self):
             # start state == OnState
             self.assertIsInstance(self.stateMachine.state, OnState)
+            self.assertEqual(self.mockInterface.lcd.mockLcdValue, '\fReady')
+
+        def test_onState_no_transistion(self):
+            for key in ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'B', 'C', 'D', '*', '#'):
+                self.mockInterface.keypad.mockKeypad.append(key)
+                self.mockInterface.presence.mockReadValue = True
+                self.stateMachine.update()
+                self.assertIsInstance(self.stateMachine.state, OnState)
 
         def test_onState_pressedA(self):
+            # On state no transition to Pressure State after keypress: A if cup not pressend
+            self.mockInterface.keypad.mockKeypad.append('A')
+            self.mockInterface.presence.mockReadValue = False
+            self.stateMachine.update()
+            self.assertEqual(self.mockInterface.lcd.mockLcdValue, '\fNo cup')
+            self.assertIsInstance(self.stateMachine.state, OnState)
+
+            # check effectors that are off
+            self.assertFalse(self.mockInterface.heater.isOn)
+            self.assertFalse(self.mockInterface.led_green.isOn)
+            self.assertFalse(self.mockInterface.led_yellow.isOn)
+            self.assertFalse(self.mockInterface.water_valve.isOn)
+            self.assertFalse(self.mockInterface.syrup_valve.isOn)
+            self.assertFalse(self.mockInterface.water_pump.isOn)
+            self.assertFalse(self.mockInterface.syrup_pump.isOn)
+
             # On state transition to Pressure State after keypress: A
             self.mockInterface.keypad.mockKeypad.append('A')
             self.mockInterface.presence.mockReadValue = True
@@ -301,7 +328,8 @@ if __name__ == "__main__":
             self.assertIsInstance(self.stateMachine.state, PressureBuildState)
 
         def test_PressureBuildState_correct_startup(self):
-            self.stateMachine.switch_state(self.stateMachine.STATES.PRESSURE_BUILD)
+            self.stateMachine.switch_state(
+                self.stateMachine.STATES.PRESSURE_BUILD)
             # Test effectors that are off
             self.assertFalse(self.mockInterface.heater.isOn)
             self.assertFalse(self.mockInterface.water_valve.isOn)
@@ -314,10 +342,11 @@ if __name__ == "__main__":
             self.assertTrue(self.mockInterface.syrup_pump.isOn)
 
             # Test LCD
-            self.assertEqual(self.mockInterface.lcd.mockLcd, "")
+            self.assertEqual(self.mockInterface.lcd.mockLcdValue, "")
 
         def test_PressureBuildState_no_transition(self):
-            self.stateMachine.switch_state(self.stateMachine.STATES.PRESSURE_BUILD)
+            self.stateMachine.switch_state(
+                self.stateMachine.STATES.PRESSURE_BUILD)
             self.mockInterface.presence.mockReadValue = True
 
             # Tests no transition without input
@@ -327,13 +356,16 @@ if __name__ == "__main__":
             # Tests no transition with key presses
             for key in ('A', 'B', 'C', 'D', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#', '0'):
                 # Switch back to state because the PRESSURE_BUILD state has pressure before all keys are tested
-                self.stateMachine.switch_state(self.stateMachine.STATES.PRESSURE_BUILD)
+                self.stateMachine.switch_state(
+                    self.stateMachine.STATES.PRESSURE_BUILD)
                 self.mockInterface.keypad.mockKeypad.append(key)
                 self.stateMachine.update()
-                self.assertIsInstance(self.stateMachine.state, PressureBuildState)
+                self.assertIsInstance(
+                    self.stateMachine.state, PressureBuildState)
 
         def test_PressureBuildState_transition_to_PourState(self):
-            self.stateMachine.switch_state(self.stateMachine.STATES.PRESSURE_BUILD)
+            self.stateMachine.switch_state(
+                self.stateMachine.STATES.PRESSURE_BUILD)
             self.mockInterface.presence.mockReadValue = True
 
             # Tests no transition transition when not ready
@@ -343,13 +375,15 @@ if __name__ == "__main__":
             # Test transition when ready
             for i in range(8):
                 self.stateMachine.update()
-                self.assertIsInstance(self.stateMachine.state, PressureBuildState)
+                self.assertIsInstance(
+                    self.stateMachine.state, PressureBuildState)
 
             self.stateMachine.update()
             self.assertIsInstance(self.stateMachine.state, PourState)
 
         def test_PressureBuildState_transition_to_CancelState(self):
-            self.stateMachine.switch_state(self.stateMachine.STATES.PRESSURE_BUILD)
+            self.stateMachine.switch_state(
+                self.stateMachine.STATES.PRESSURE_BUILD)
             self.mockInterface.presence.mockReadValue = False
 
             # Tests transition to cancel state after
@@ -370,7 +404,7 @@ if __name__ == "__main__":
             self.assertTrue(self.mockInterface.water_valve.isOn)
 
             # Test effectors that are on
-            self.assertEqual(self.mockInterface.lcd.mockLcd, "\fCANCELED")
+            self.assertEqual(self.mockInterface.lcd.mockLcdValue, "\fCANCELED")
 
         def test_CancelState_no_transition(self):
             self.stateMachine.switch_state(self.stateMachine.STATES.CANCEL)
@@ -388,7 +422,8 @@ if __name__ == "__main__":
                 self.stateMachine.switch_state(self.stateMachine.STATES.CANCEL)
                 self.mockInterface.keypad.mockKeypad.append(key)
                 self.stateMachine.update()
-                self.assertIsInstance(self.stateMachine.state, PressureBuildState)
+                self.assertIsInstance(
+                    self.stateMachine.state, PressureBuildState)
 
         def test_CancelState_transition_to_onState(self):
             # Test transition without cup
@@ -413,5 +448,91 @@ if __name__ == "__main__":
             self.stateMachine.update()
             self.assertIsInstance(self.stateMachine.state, OnState)
 
+        def test_keepWarmState_keepingWarm(self):
+            for key in ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', '*', '#'):
+                self.mockInterface.keypad.mockKeypad.append(key)
+                self.stateMachine.switch_state(
+                    self.stateMachine.STATES.KEEP_WARM)
+                self.mockInterface.presence.mockReadValue = True
 
+                # check effectors that are on
+                self.assertTrue(self.mockInterface.heater.isOn)
+                self.assertTrue(self.mockInterface.water_valve.isOn)
+                self.assertTrue(self.mockInterface.syrup_valve.isOn)
+
+                # check effectors that are off
+                self.assertFalse(self.mockInterface.led_green.isOn)
+                self.assertFalse(self.mockInterface.led_yellow.isOn)
+                self.assertFalse(self.mockInterface.water_pump.isOn)
+                self.assertFalse(self.mockInterface.syrup_pump.isOn)
+
+                # check lcd
+                self.assertEqual(
+                    self.mockInterface.lcd.mockLcdValue, '\fKeeping warm')
+
+        def test_keepWarmState_cupGone(self):
+            for key in ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', '*', '#'):
+                self.mockInterface.keypad.mockKeypad.append(key)
+                self.stateMachine.switch_state(
+                    self.stateMachine.STATES.KEEP_WARM)
+                self.mockInterface.presence.mockReadValue = False
+                self.stateMachine.update()
+
+                # check effectors that are off
+                self.assertFalse(self.mockInterface.heater.isOn)
+                self.assertFalse(self.mockInterface.led_green.isOn)
+                self.assertFalse(self.mockInterface.led_yellow.isOn)
+                self.assertFalse(self.mockInterface.water_valve.isOn)
+                self.assertFalse(self.mockInterface.syrup_valve.isOn)
+                self.assertFalse(self.mockInterface.water_pump.isOn)
+                self.assertFalse(self.mockInterface.syrup_pump.isOn)
+
+                # check state transistion
+                self.assertIsInstance(self.stateMachine.state, OnState)
+
+        def test_pourState_pouring(self):
+            for key in ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', '*', '#'):
+                self.mockInterface.keypad.mockKeypad.append(key)
+                self.stateMachine.switch_state(self.stateMachine.STATES.POUR)
+                self.mockInterface.presence.mockReadValue = True
+                self.mockInterface.distance.mockReadValue = 0
+                self.stateMachine.update()
+
+                # check effectors that are on
+                self.assertTrue(self.mockInterface.water_pump.isOn)
+                self.assertTrue(self.mockInterface.syrup_pump.isOn)
+
+                # check effectors that are off
+                self.assertFalse(self.mockInterface.heater.isOn)
+                self.assertFalse(self.mockInterface.led_green.isOn)
+                self.assertFalse(self.mockInterface.led_yellow.isOn)
+                self.assertFalse(self.mockInterface.water_valve.isOn)
+                self.assertFalse(self.mockInterface.syrup_valve.isOn)
+
+                # check lcd
+                self.assertEqual(
+                    self.mockInterface.lcd.mockLcdValue, '\fPouring...')
+
+                # check state
+                self.assertIsInstance(self.stateMachine.state, PourState)
+
+        def test_pourState_pouringCanceld_cupGone(self):
+            self.stateMachine.switch_state(self.stateMachine.STATES.POUR)
+            self.mockInterface.presence.mockReadValue = False
+            self.mockInterface.distance.mockReadValue = 0
+            self.stateMachine.update()
+            self.assertIsInstance(self.stateMachine.state, CancelState)
+
+        def test_pourState_pouringCanceld_threshhold(self):
+            self.stateMachine.switch_state(self.stateMachine.STATES.POUR)
+            self.mockInterface.presence.mockReadValue = True
+
+            for x in range(1, 10):
+                self.mockInterface.distance.mockReadValue = x/10
+                self.stateMachine.update()
+                self.assertIsInstance(self.stateMachine.state, PourState)
+
+            self.mockInterface.distance.mockReadValue = 1
+            self.stateMachine.update()
+            self.assertIsInstance(self.stateMachine.state, KeepWarmState)
     unittest.main()
