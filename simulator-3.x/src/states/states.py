@@ -264,31 +264,32 @@ if __name__ == "__main__":
             return self.mockKeypad.pop()
 
     class TestUnitClass(unittest.TestCase):
-
         def setUp(self):
+            self.effectors = {
+                'heater': MockEffector(),
+                'pumpB': MockEffector(),
+                'valveB': MockEffector(),
+                'pumpA': MockEffector(),
+                'valveA': MockEffector(),
+                'greenM': MockEffector(),
+                'yellowM': MockEffector(),
+                'lcd': MockLcd()
+              }
 
-            self.effectors = {'heater': MockEffector(),
-                              'pumpB': MockEffector(),
-                              'valveB': MockEffector(),
-                              'pumpA': MockEffector(),
-                              'valveA': MockEffector(),
-                              'greenM': MockEffector(),
-                              'yellowM': MockEffector(),
-                              'lcd': MockLcd()}
+            self.sensors = {
+                'level': MockSensors(),
+                'colour': MockSensors(),
+                'temp': MockSensors(),
+                'presence': MockSensors(),
+                'keypad': MockKey()
+            }
 
-            self.sensors = {'level': MockSensors(),
-                            'colour': MockSensors(),
-                            'temp': MockSensors(),
-                            'presence': MockSensors(),
-                            'keypad': MockKey()
-                            }
-
-            self.mockInterface = MockLemonatorInterface(
-                self.effectors, self.sensors)
+            self.mockInterface = MockLemonatorInterface(self.effectors, self.sensors)
             self.stateMachine = StateMachine(self.mockInterface)
 
         def test_onState_isStart(self):
             # start state == OnState
+            self.assertTrue(False)
             self.assertIsInstance(self.stateMachine.state, OnState)
 
         def test_onState_pressedA(self):
@@ -298,4 +299,4 @@ if __name__ == "__main__":
             self.stateMachine.update()
             self.assertIsInstance(self.stateMachine.state, PressureBuildState)
 
-unittest.main()
+    unittest.main()
