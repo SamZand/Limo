@@ -1,4 +1,6 @@
 import unittest
+import time
+
 if __name__ == "__main__":
     from utills import Enum
 else:
@@ -108,23 +110,20 @@ class OnState(State):
 class PressureBuildState(State):
     def __init__(self, stm, interface):
         super().__init__(stm, interface)
-        # TODO: replace with time
-        self.counter = 0
-        self.pressure_time = 10
+        self.start_time = time.time()
+        self.pressure_time = 0.2
 
     def on_enter(self):
         self.interface.lcd.pushString('\fBuilding pressure...')
-        self.counter = 0
+        self.start_time = time.time()
 
     def update(self):
         # No cup, go to cancel state
         if not self.interface.presence.readValue():
             self.stm.switch_state(self.stm.STATES.CANCEL)
 
-        self.counter += 1
-
         # We have pressure go to next state
-        if self.counter == self.pressure_time:
+        if time.time() - self.start_time >= self.pressure_time:
             self.stm.switch_state(self.stm.STATES.POUR)
 
     def reset(self):
@@ -163,22 +162,20 @@ class CancelState(State):
         super().__init__(stm, interface)
 
         # TODO: replace with time
-        self.counter = 0
-        self.wait_time = 60  # 2s
+        self.start_time = time.time()
+        self.wait_time = 2  # 2s
 
     def on_enter(self):
         self.interface.lcd.pushString('\fCANCELED')
-        self.counter = 0
+        self.start_time = time.time()
 
         # Open valves
         self.interface.water_valve.switchOn()
         self.interface.syrup_valve.switchOn()
 
     def update(self):
-        self.counter += 1
-
         # Wait time has passed, go to next state
-        if self.counter == self.wait_time:
+        if time.time() - self.start_time >= self.wait_time:
             self.stm.switch_state(self.stm.STATES.ON)
 
     def reset(self):
@@ -209,8 +206,6 @@ class KeepWarmState(State):
 
 
 if __name__ == "__main__":
-    import time
-
     class MockLemonatorInterface:
         def __init__(self, effectors, sensors):
             self.lcd = effectors['lcd']
@@ -336,13 +331,11 @@ if __name__ == "__main__":
             self.assertFalse(self.mockInterface.syrup_valve.isOn)
             self.assertFalse(self.mockInterface.led_green.isOn)
             self.assertFalse(self.mockInterface.led_yellow.isOn)
-
-            # Test effectors that are on
-            self.assertTrue(self.mockInterface.water_pump.isOn)
-            self.assertTrue(self.mockInterface.syrup_pump.isOn)
+            self.assertFalse(self.mockInterface.water_pump.isOn)
+            self.assertFalse(self.mockInterface.syrup_pump.isOn)
 
             # Test LCD
-            self.assertEqual(self.mockInterface.lcd.mockLcdValue, "")
+            self.assertEqual(self.mockInterface.lcd.mockLcdValue, "\fBuilding pressure...")
 
         def test_PressureBuildState_no_transition(self):
             self.stateMachine.switch_state(
@@ -372,13 +365,16 @@ if __name__ == "__main__":
             self.stateMachine.update()
             self.assertIsInstance(self.stateMachine.state, PressureBuildState)
 
-            # Test transition when ready
-            for i in range(8):
+            # TODO: Find a way to simulate time so that unittests don't take a minimum of 0.2 seconds
+            # Test no transition before 0.2 seconds have passed
+            start_time = time.time()
+            time_in_pressure_build = 0
+            while isinstance(self.stateMachine.state, PressureBuildState):
                 self.stateMachine.update()
-                self.assertIsInstance(
-                    self.stateMachine.state, PressureBuildState)
+            time_in_pressure_build = time.time() - start_time
 
-            self.stateMachine.update()
+            # Pressure should be built approximately 0.2s
+            self.assertAlmostEqual(time_in_pressure_build, 0.2, 1)
             self.assertIsInstance(self.stateMachine.state, PourState)
 
         def test_PressureBuildState_transition_to_CancelState(self):
@@ -422,8 +418,7 @@ if __name__ == "__main__":
                 self.stateMachine.switch_state(self.stateMachine.STATES.CANCEL)
                 self.mockInterface.keypad.mockKeypad.append(key)
                 self.stateMachine.update()
-                self.assertIsInstance(
-                    self.stateMachine.state, PressureBuildState)
+                self.assertIsInstance(self.stateMachine.state, CancelState)
 
         def test_CancelState_transition_to_onState(self):
             # Test transition without cup
