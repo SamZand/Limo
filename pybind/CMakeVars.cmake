@@ -1,1 +1,0 @@
-set(PYTHON_EXECUTABLE C:/Users/Julian/AppData/Local/Programs/Python/Python37/Python.exe)
