@@ -1,53 +1,59 @@
 from states.states import StateMachine
 
+import time
+
+import lemonator
+
+lemonator.openInterface(4, True, True)
 
 class LemonatorInterface:
     def __init__(self, effectors, sensors):
-        self.lcd = effectors['lcd']
-        self.keypad = sensors['keypad']
+        self.lcd = lemonator.getLCD()
+        self.keypad = lemonator.getKeyPad()
 
-        self.distance = sensors['level']
-        self.colour = sensors['colour']
-        self.temperature = sensors['temp']
-        self.presence = sensors['presence']
+        self.distance = lemonator.getDistance()
+        self.colour = lemonator.getColour()
+        self.temperature = lemonator.getTemperature()
+        self.presence = lemonator.getPresence()
 
-        self.heater = effectors['heater']
-        self.syrup_pump = effectors['pumpB']
-        self.syrup_valve = effectors['valveB']
-        self.water_pump = effectors['pumpA']
-        self.water_valve = effectors['valveA']
-        self.led_green = effectors['greenM']
-        self.led_yellow = effectors['yellowM']
+        self.heater = lemonator.getHeater()
+        self.syrup_pump = lemonator.getSyrupPump()
+        self.syrup_valve = lemonator.getSyrupValve()
+        self.water_pump = lemonator.getWaterPump()
+        self.water_valve = lemonator.getWaterValve()
+        self.led_green = lemonator.getLedGreen()
+        self.led_yellow = lemonator.getLedYellow()
 
         # TODO: Define
         self.syrup = None
         self.water = None
 
 
-def new_update(self) -> None:
-    effectors = self._Controller__effectors
-    sensors = self._Controller__sensors
-
-    if not hasattr(self, "interface"):
-        self.interface = LemonatorInterface(effectors, sensors)
-        return
-    if not hasattr(self, "stm"):
+class Plant:
+    def __init__(self):
+        self.interface = LemonatorInterface(None, None)
         self.stm = StateMachine(self.interface)
-        return
-
-    self.stm.update()
 
 
 if __name__ == "__main__":
+    p = Plant()
+
     """Only perform actions when invoked directly!"""
-    from blackbox.Simulator import Simulator
-    import types
+    
+    timestamp = 0
+    while True:
+        timestamp += 1
+        time.sleep(1)
+        p.stm.update()
 
-    simulator = Simulator(True)  # use Simulator(False) to disable the GUI
+    # from blackbox.Simulator import Simulator
+    # import types
 
-    # Override the update function with our logic
-    simulator._Simulator__controller.update = types.MethodType(
-        new_update, simulator._Simulator__controller)
+    # simulator = Simulator(False)  # use Simulator(False) to disable the GUI
 
-    # Start simulation
-    simulator.run()
+    # # Override the update function with our logic
+    # simulator._Simulator__controller.update = types.MethodType(
+    #     new_update, simulator._Simulator__controller)
+
+    # # Start simulation
+    # simulator.run()
