@@ -4,7 +4,7 @@ import time
 if __name__ == "__main__":
     from utills import Enum
 else:
-    from states.utills import Enum
+    from utills import Enum
 
 
 class StateMachine:
@@ -93,15 +93,15 @@ class OnState(State):
 
     def update(self):
         # No cup
-        if not self.interface.presence.readValue():
-            self.interface.lcd.pushString('\fNo cup')
-        else:
-            self.interface.lcd.pushString('\fReady')
-            keypressed = self.interface.keypad.pop()
-            if keypressed:
-                # Oke button pressed, go to next state
-                if keypressed == 'A':
-                    self.stm.switch_state(self.stm.STATES.PRESSURE_BUILD)
+        # if not self.interface.presence.readValue():
+        #     self.interface.lcd.pushString('\fNo cup')
+        # else:
+        self.interface.lcd.pushString('\fReady')
+        keypressed = self.interface.keypad.pop()
+        if keypressed:
+            # Oke button pressed, go to next state
+            if keypressed == 'A':
+                self.stm.switch_state(self.stm.STATES.PRESSURE_BUILD)
 
     def reset(self):
         super().reset()
@@ -119,8 +119,8 @@ class PressureBuildState(State):
 
     def update(self):
         # No cup, go to cancel state
-        if not self.interface.presence.readValue():
-            self.stm.switch_state(self.stm.STATES.CANCEL)
+        # if not self.interface.presence.readValue():
+        #     self.stm.switch_state(self.stm.STATES.CANCEL)
 
         # We have pressure go to next state
         if time.time() - self.start_time >= self.pressure_time:
@@ -134,24 +134,28 @@ class PourState(State):
     def __init__(self, stm, interface):
         super().__init__(stm, interface)
 
-        self.cup_threshhold = 1
+        self.cup_threshhold = 60
+        self.pumping = False
 
     def on_enter(self):
         self.interface.lcd.pushString('\fPouring...')
+        self.pumping = False
 
     def update(self):
         # Cup removed
-        if not self.interface.presence.readValue():
-            self.stm.switch_state(self.stm.STATES.CANCEL)
+        # if not self.interface.presence.readValue():
+        #     self.stm.switch_state(self.stm.STATES.CANCEL)
         # Cup full
-        elif self.interface.distance.readValue() >= self.cup_threshhold:
+        if self.interface.distance.readValue() <= self.cup_threshhold:
             self.stm.switch_state(self.stm.STATES.KEEP_WARM)
         # Cup not full
         else:
             # TODO: Pumps only need to be turned on once
             # TODO: SETTINGS
-            self.interface.water_pump.switchOn()
-            self.interface.syrup_pump.switchOn()
+            if not self.pumping:
+                self.interface.water_pump.switchOn()
+                self.interface.syrup_pump.switchOn()
+                self.pumping = True
 
     def reset(self):
         super().reset()
@@ -198,8 +202,8 @@ class KeepWarmState(State):
 
     def update(self):
         # Cup removed
-        if not self.interface.presence.readValue():
-            self.stm.switch_state(self.stm.STATES.ON)
+        # if not self.interface.presence.readValue():
+        self.stm.switch_state(self.stm.STATES.ON)
 
     def reset(self):
         super().reset()
